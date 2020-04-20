@@ -11,7 +11,7 @@
 Этот провайдер позволяет инжектить сервисы на ходу в приложении.  
 Например  
 
-```
+```typescript
 const service = this.moduleRef.get<Service>(Service);
 ```
 
@@ -33,7 +33,7 @@ const service = this.moduleRef.get<Service>(Service);
 Можно это сделать с помощью environment variables.  
 На примере псевдокода:  
 
-```
+```typescript
 const modules = [ modules ]
 
 if (process.env.ENABLE_SOME_MODULE) {
@@ -50,7 +50,7 @@ if (process.env.ENABLE_SOME_MODULE) {
 
 Это делается очень просто:  
 
-```
+```typescript
 const service = app.get<ServiceName>(ServiceName);
 
 service.callMethod();
@@ -65,7 +65,7 @@ service.callMethod();
 
 Создаем отдельно файл в `src` с названием `cli.ts`.
 
-```
+```typescript
 import { NestFactory, ModuleRef } from '@nestjs/core';
 import { CLIModule } from './cli.module';
 import { cliCommandInvoker } from './cli-command-invoker';
@@ -85,7 +85,7 @@ bootstrapCLI();
 
 Создаем `CLIModule` который будет содержать в себе `cli` команды.  
 
-```
+```typescript
 import { Module } from '@nestjs/common';
 import { HelloCommand } from './hello.command';
 
@@ -101,7 +101,7 @@ export class CLIModule {
 
 Создаем interface для наших `cli` комманд.  
 
-```
+```typescript
 export interface CLICommand {
     invoke(...args);
 }
@@ -109,7 +109,7 @@ export interface CLICommand {
 
 Создаем нашу первую `cli` команду `HelloCommand`.  
 
-```
+```typescript
 import { CLICommand } from './command';
 import { Injectable } from '@nestjs/common';
 
@@ -124,7 +124,7 @@ export class HelloCommand implements CLICommand {
 Следующим шагом замапим наши команды на наши классы. Сделаем это с помощью `Map`.  
 Создадим файл `cli-commands.ts`.  
 
-```
+```typescript
 export const cliCommands = new Map<string, Type<CLICommand>>();
 cliCommands.set('hello', HelloCommand);
 ```
@@ -132,7 +132,7 @@ cliCommands.set('hello', HelloCommand);
 Теперь нужно создать функцию для вызова `cli` команд `cliCommandInvoker`.  
 Создадим файл `cli-command-invoker.ts`  
 
-```
+```typescript
 import { Type } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { CLICommand } from './command';
@@ -146,7 +146,7 @@ export function cliCommandInvoker(moduleRef: ModuleRef, commands: Map<string, Ty
 
 Пользуемся так  
 
-```
+```bash
 npx ts-node ./src/cli.ts hello
 ```
 
@@ -170,7 +170,7 @@ Hello world
 
 Напишем прототип чего мы хотим  
 
-```
+```typescript
 class SomePayload {
   constructor(public text: string) {}
 }
@@ -187,7 +187,7 @@ export class QueueHandler implements Consumer {
 
 И как будет выглядеть вызов этой таски из вашего сервиса:  
 
-```
+```typescript
 this.bull.queue('QueueName').add(queuePayload, options);
 ```
 
@@ -195,7 +195,7 @@ this.bull.queue('QueueName').add(queuePayload, options);
 
 Для начала давайте сделаем декоратор для обработчика очереди:
 
-```
+```typescript
 import { Injectable, SetMetadata } from '@nestjs/common';
 import * as Bull from 'bull';
 
@@ -213,7 +213,7 @@ export function Queue(name: string, options?: Bull.QueueOptions): ClassDecorator
 Создадим интерфейс для класса который будет служить обработчиком очереди:  
 Мы же должны четко понимать какой метод класса должен быть вызван для обработки очереди.  
 
-```
+```typescript
 export interface Consumer {
     invoke(job: Bull.Job<Dictionary>): unknown;
 }
@@ -223,7 +223,7 @@ export interface Consumer {
 Теперь нужно просканировать `NestContainer` ( DI Container ) и выбрать наши классы "обработчики" для очереди.  
 Напишем так званый `QueueExplorer` задача которого прошелестеть `NestContainer` и отфильтровать классы.  
 
-```
+```typescript
 import { flattenDeep, compact } from 'lodash';
 import * as Bull from 'bull';
 import { ModulesContainer } from '@nestjs/core/injector/modules-container';
@@ -280,13 +280,13 @@ export class QueueExplorer {
 В `AppModule` создадим `onModuleInit` для связывания обработчиков и `bulljs`.  
 Заинжектим в конструктор модуля наш `QueueExplorer`.  
 В хуке `onModuleInit` запустим сканирование наших обработчиков для очереди:  
-```
+```typescript
 const queueHandlers = this.queueExplorer.explore();
 ```
 
 А теперь давайте связывать:  
 
-```
+```typescript
 for (const { instance, options, name } of queueHandlers) {
     // Logger.log(`Init '${name}' consumer`, QUEUE_LOGGER_CTX);
     // создание очереди
@@ -299,7 +299,7 @@ for (const { instance, options, name } of queueHandlers) {
 
 Теперь можно смело пользоваться этой удобной фичей.  
 
-```
+```typescript
 this.bull.queue('QueueName').add(new Somepayload('text'), optionalOptions);
 ```
 
