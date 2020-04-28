@@ -4,6 +4,9 @@
  - [Как заинжектить класс в `main.ts`](#inject-provider-in-maints)
  - [CLI на минималках](#creating-cli)
  - [Queue Resolver - Nest Way](#queue-resolver)
+ - [Как запускать и отлаживать приложение через Nest CLI и зачем он нужен](#start-with-nest-cli)
+   - [Не работает отладка в WebStorm (JetBrains, Intellij IDEA)](#debug-in-idea)
+   - [Пути в Stacktrace ошибок указывают на js файлы в dist, а не на исходные ts файлы](#stactrace-with-source-maps)
 
 ### Как заинжектить класс динамически ? <a id="dynamic-inject-provider"></a>
 
@@ -311,3 +314,22 @@ this.bull.queue('QueueName').add(new Somepayload('text'), optionalOptions);
  - Можно добавить обработку ошибок:
   `queue.on('failed', instance.failedAction.bind(instance));`  
  - добавить проверку существования метода `invoke` в обработчике событий и выдавать `RuntimeExeception` если метод не реализован.  
+ 
+ 
+### Как запускать и отлаживать приложение через Nest CLI и зачем он нужен <a id="start-with-nest-cli"></a>
+
+В стандартном шаблоне проекта, созданном через `nest create`, скрипты запуска установлены как `nest start` с различными параметрами. 
+
+`nest` -- это небольшая прослойка, позволяющая легко запускать Nest приложение в разных режимах, просто добавляя аргументы, например, `--watch`,  `--debug` и даже `--webpack` для сборки через Webpack.
+
+##### Не работает отладка в WebStorm (JetBrains, Intellij IDEA) <a id="debug-in-idea"></a>
+
+При запуске через `nest start --debug` (он же `npm run start:debug`) по кнопке кнопка Debug в WebStorm отладка не запускается (точки остановки не срабатывают).
+
+Требуется создать отдельную задачу `Attach to Node.js` и запускать параллельно `start:debug` (`nest start --debug`).  
+https://www.jetbrains.com/help/webstorm/run-debug-configuration-node-js-remote-debug.html
+
+##### Пути в Stacktrace ошибок указывают на js файлы в dist, а не на исходные ts файлы <a id="stactrace-with-source-maps"></a>
+
+Требуется добавить `--exec \"node -r source-map-support/register\"` к параметрам запуска, например:  
+`"start:dev": "nest start --watch --exec \"node -r source-map-support/register\"",`
