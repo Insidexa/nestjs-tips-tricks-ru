@@ -4,6 +4,7 @@
  - [Как заинжектить класс в `main.ts`](#inject-provider-in-maints)
  - [CLI на минималках](#creating-cli)
  - [Queue Resolver - Nest Way](#queue-resolver)
+ - [Как отдать документ на фронт на примере pdf / excel)](#response-document)
  - [Как запускать и отлаживать приложение через Nest CLI и зачем он нужен](#start-with-nest-cli)
    - [Не работает отладка в WebStorm (JetBrains, Intellij IDEA)](#debug-in-idea)
    - [Пути в Stacktrace ошибок указывают на js файлы в dist, а не на исходные ts файлы](#stactrace-with-source-maps)
@@ -316,6 +317,39 @@ this.bull.queue('QueueName').add(new Somepayload('text'), optionalOptions);
  - добавить проверку существования метода `invoke` в обработчике событий и выдавать `RuntimeExeception` если метод не реализован.  
  
  
+### Как отдать документ на фронт на примере pdf / excel <a id="response-document"></a>
+
+Для начала нужно в контроллере добавить импорт декоратора `@Res() response` у параметры метода.  
+Например  
+
+```
+  @Get('pdf')
+  public sendPdf(@Res() response) {
+    response.set({
+      'Content-Disposition': 'attachment; filename="filename.pdf',
+      'Content-Type': 'application/pdf',
+    });
+    const stream = createReadStream('./example.pdf');
+    stream.pipe(response);
+  }
+
+  @Get('excel')
+  public sendExcel(@Res() response) {
+    response.set({
+      'Content-Disposition': 'attachment; filename="filename.xlsx',
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const stream = createReadStream('./example.xlsx');
+    stream.pipe(response);
+  }
+```
+
+При обращении по роуту с нужным типом - скачивание документа начнется автоматически.  
+
+Для PDF можно убрать автоматическое скачивание и сделать предпросмотр у браузере ( работает у Google Chrome ).  
+Для этого уберите заголовок `Content-Disposition`.  
+
+
 ### Как запускать и отлаживать приложение через Nest CLI и зачем он нужен <a id="start-with-nest-cli"></a>
 
 В стандартном шаблоне проекта, созданном через `nest create`, скрипты запуска установлены как `nest start` с различными параметрами. 
